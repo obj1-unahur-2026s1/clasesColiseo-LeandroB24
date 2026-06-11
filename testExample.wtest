@@ -1,9 +1,78 @@
-import example.pepita
+import example.*
 
-describe "group of tests for pepita" {
+describe "Tests del Coliseo y Gladiadores" {
+    
+    const espada = new ArmaDeFilo(filo = 10, longitud = 2) // Ataque = 20
+    const mazo = new ArmaContundente(peso = 15) // Ataque = 15
 
-  test "pepita has initial energy" {
-    assert.equals(100, pepita.energy())
-  }
+    const maximus = new Mirmillon(fuerza = 20, arma = espada, armadura = casco) 
+    // PoderAtaque = 40. Defensa = 10(casco) + 15(destreza) = 25.
+
+    const espartaco = new Dimachaerus(destreza = 10) 
+    const crixus = new Dimachaerus(destreza = 20) 
+
+    method initialize() {
+        espartaco.agregar(mazo)
+        // PoderAtaque = 15(mazo) + 10(fuerza) = 25. Defensa = 10/2 = 5.
+        
+        crixus.agregar(mazo)
+        // PoderAtaque = 15(mazo) + 10(fuerza) = 25. Defensa = 20/2 = 10.
+    }
+
+    // --------------------------------------------------------
+    // Tests de pelearCon
+    // --------------------------------------------------------
+    test "pelearCon: El Mirmillon no pierde vida si su defensa absorbe todo el ataque del Dimachaerus" {
+        // Maximus def(25) absorbe el ataque de Espartaco(25). Daño = 0.
+        maximus.pelearCon(espartaco)
+        assert.equals(100, maximus.vida())
+    }
+
+    test "pelearCon: El Dimachaerus pierde vida correctamente tras el ataque cruzado" {
+        // Espartaco recibe: Atk Maximus(40) - Def Espartaco(5) = 35 daño. Vida(100) - 35 = 65.
+        maximus.pelearCon(espartaco)
+        assert.equals(65, espartaco.vida())
+    }
+
+    // --------------------------------------------------------
+    // Tests de formarGrupoCon
+    // --------------------------------------------------------
+    test "formarGrupoCon (Mirmillon): Crea un grupo asignando el nombre estático correspondiente" {
+        const grupoMirmillon = maximus.formarGrupoCon(espartaco)
+        assert.equals("Mirmillolandia", grupoMirmillon.nombre())
+    }
+
+    test "formarGrupoCon (Dimachaerus): Crea un grupo concatenando la suma del poder de ataque de los miembros" {
+        // Poder Maximus (40) + Poder Espartaco (25) = 65.
+        const grupoDimachaerus = espartaco.formarGrupoCon(maximus)
+        assert.equals("D-65", grupoDimachaerus.nombre())
+    }
+
+    // --------------------------------------------------------
+    // Tests de curar (Gladiador y Coliseo)
+    // --------------------------------------------------------
+    test "curar (Gladiador): Restaura la vida del gladiador al tope de 100 luego de ser herido" {
+        maximus.pelearCon(espartaco) // No le hace daño
+        const titan = new Mirmillon(fuerza = 50, arma = espada, armadura = casco) // Atk = 70
+        maximus.recibirAtaque(titan) // Recibe 45 daño, vida en 55
+        assert.equals(55, maximus.vida())
+        maximus.curar()
+        assert.equals(100, maximus.vida())
+    }
+
+    test "curar (Coliseo): El coliseo puede curar exitosamente a un gladiador específico a través de su método" {
+        espartaco.recibirAtaque(maximus) // Recibe 35 de daño
+        coliseo.curar(espartaco)
+        assert.equals(100, espartaco.vida())
+    }
+
+    test "curarGrupo (Coliseo): Delega correctamente a los miembros de la colección restaurando sus vidas" {
+        // Como curarGrupo asume un objeto que entienda forEach, le pasamos una lista
+        espartaco.recibirAtaque(maximus)
+        crixus.recibirAtaque(maximus)
+        coliseo.curarGrupo(espartaco.formarGrupoCon(crixus))
+        assert.equals(100, crixus.vida()) 
+    }
+
 
 }
